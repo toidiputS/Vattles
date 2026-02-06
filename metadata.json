@@ -1,0 +1,5 @@
+{
+  "name": "Vattles",
+  "description": "A web application showcasing a voting arena for AI-assisted coding competitions. Users can view and vote on submissions based on their vibe, aesthetics, and creativity, all within a futuristic, neon-lit interface.",
+  "requestFramePermissions": []
+}
