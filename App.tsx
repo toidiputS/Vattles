@@ -52,7 +52,7 @@ const initialUserProfile: UserProfile = {
 };
 
 const mockTournaments: Tournament[] = [
-    { id: 't1', title: 'Vibe Masters Winter Circuit', theme: 'Winter Wonderland', type: 'official', status: 'live', prizePool: '$5,000', maxParticipants: 64, participants: Array.from({length: 60}, (_, i) => ({ id: `p${i}`, name: `Vattler${i}`, seed: i+1, avatarUrl: `https://i.pravatar.cc/40?u=p${i}`})), rounds: []},
+    { id: 't1', title: 'Vibe Masters Winter Circuit', theme: 'Winter Wonderland', type: 'official', status: 'live', prizePool: '$5,000', maxParticipants: 64, participants: Array.from({ length: 60 }, (_, i) => ({ id: `p${i}`, name: `Vattler${i}`, seed: i + 1, avatarUrl: `https://i.pravatar.cc/40?u=p${i}` })), rounds: [] },
 ];
 
 type View = 'auth' | 'arena' | 'battle' | 'spectate' | 'voting' | 'profile' | 'rankings' | 'tournaments' | 'tournament_detail' | 'vibelabs' | 'api' | 'streaming' | 'onboarding';
@@ -62,11 +62,17 @@ const App: React.FC = () => {
     const [userProfile, setUserProfile] = useState<UserProfile>(initialUserProfile);
     const [authLoading, setAuthLoading] = useState(true);
     const [view, setView] = useState<View>('auth');
-    
+
     // Data State
-    const [vattles, setVattles] = useState<VattleConfig[]>([]);
+    const [vattles, setVattles] = useState<VattleConfig[]>([
+        { id: 'vattle-1', theme: 'Neon Jungle Interface', creatorName: 'VibeMaster', invitedOpponent: 'Guest', status: 'active', mode: 'standard', opponent: 'player', timeLimit: 15, startTime: Date.now() - 300000, isFeatured: true, isTrending: true },
+        { id: 'vattle-2', theme: 'Minimalist Zen Dashboard', creatorName: 'CodeZen', invitedOpponent: 'Open Invite', status: 'pending', mode: 'standard', opponent: 'player', timeLimit: 10, isFeatured: true },
+        { id: 'vattle-3', theme: 'Retro Arcade Components', creatorName: 'PixelArtist', invitedOpponent: 'Vattler001', status: 'voting', mode: 'standard', opponent: 'player', timeLimit: 12 },
+        { id: 'vattle-4', theme: 'AI Assistant Personalities', creatorName: 'AICoach', studentName: 'Newbie', status: 'active', mode: 'coaching', opponent: 'ai', timeLimit: 30, startTime: Date.now() - 600000 },
+        { id: 'vattle-quick', theme: '60s Header Challenge', creatorName: 'SpeedCoder', invitedOpponent: 'Open Invite', status: 'pending', mode: 'standard', opponent: 'player', timeLimit: 1, isTrending: true }
+    ]);
     const [tournaments, setTournaments] = useState<Tournament[]>(mockTournaments);
-    
+
     // Active View State
     const [activeVattle, setActiveVattle] = useState<VattleConfig | null>(null);
     const [activeTournament, setActiveTournament] = useState<Tournament | null>(null);
@@ -77,10 +83,10 @@ const App: React.FC = () => {
     const [isWaitlistModalOpen, setWaitlistModalOpen] = useState(false);
     const [waitlistFeature, setWaitlistFeature] = useState('');
     const [waitlistDescription, setWaitlistDescription] = useState('');
-    
+
     // Local State Prefs
-    const [votedOn, setVotedOn] = useState<{[key: string]: boolean}>({});
-    const [registeredTournaments, setRegisteredTournaments] = useState<{[key: string]: boolean}>({});
+    const [votedOn, setVotedOn] = useState<{ [key: string]: boolean }>({});
+    const [registeredTournaments, setRegisteredTournaments] = useState<{ [key: string]: boolean }>({});
     const [labInitialPrompt, setLabInitialPrompt] = useState<string>('');
 
     // --- AUTH & PROFILE EFFECTS ---
@@ -155,7 +161,7 @@ const App: React.FC = () => {
                 .from('battles')
                 .select('*')
                 .order('created_at', { ascending: false });
-            
+
             if (data) {
                 // Transform snake_case DB to camelCase UI
                 const mappedBattles: VattleConfig[] = data.map((b: any) => ({
@@ -194,9 +200,19 @@ const App: React.FC = () => {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
+        setSession(null);
         setView('auth');
     };
-    
+
+    const handleGuestLogin = () => {
+        setSession({ user: { id: 'guest', email: 'guest@vattles.io' } } as any);
+        setUserProfile({
+            ...initialUserProfile,
+            name: 'Guest Vattler'
+        });
+        setView('arena');
+    };
+
     const handleNavigate = (newView: View) => {
         if (newView === 'rankings') {
             handleOpenWaitlist("Ranked Mode", "Ranked Mode Coming Q2 2026. Join the waitlist to compete for prizes.");
@@ -206,7 +222,7 @@ const App: React.FC = () => {
             setView(newView);
         }
     };
-    
+
     const handleOpenWaitlist = (feature: string, description: string) => {
         setWaitlistFeature(feature);
         setWaitlistDescription(description);
@@ -214,10 +230,10 @@ const App: React.FC = () => {
     };
 
     const handleEnterBattle = (vattle: VattleConfig) => {
-        const isParticipant = vattle.creatorName === userProfile.name || 
-                              vattle.invitedOpponent === userProfile.name || 
-                              vattle.studentName === userProfile.name;
-        
+        const isParticipant = vattle.creatorName === userProfile.name ||
+            vattle.invitedOpponent === userProfile.name ||
+            vattle.studentName === userProfile.name;
+
         if (isParticipant) {
             setActiveVattle(vattle);
             setView('battle');
@@ -332,12 +348,12 @@ const App: React.FC = () => {
 
         setVotedOn(prev => ({ ...prev, [vattleId]: true }));
     };
-    
+
     const handleSaveProfile = (newProfile: UserProfile) => {
         setUserProfile(newProfile);
         // DB Update would go here
     };
-    
+
     const handleUpdateProfile = (updates: Partial<UserProfile>) => {
         setUserProfile(prev => ({ ...prev, ...updates }));
     };
@@ -356,9 +372,9 @@ const App: React.FC = () => {
     };
 
     const handleUnpinItem = (vattleId: string) => {
-       // Logic to unpin
+        // Logic to unpin
     };
-    
+
     const handleCompleteOnboarding = async (newUsername: string, newAvatarUrl: string) => {
         if (!session) return;
 
@@ -388,11 +404,11 @@ const App: React.FC = () => {
             setView('tournament_detail');
         }
     };
-    
+
     const handleRegisterTournament = (tournamentId: string) => {
-        setRegisteredTournaments(prev => ({...prev, [tournamentId]: true}));
+        setRegisteredTournaments(prev => ({ ...prev, [tournamentId]: true }));
     };
-    
+
     const handleEndorse = (participantId: string, skill: string) => {
         // DB insert endorsement
     };
@@ -421,36 +437,36 @@ const App: React.FC = () => {
     };
 
     // Filter battles for the current user
-    const myBattles = vattles.filter(v => 
-        v.creatorName === userProfile.name || 
-        v.invitedOpponent === userProfile.name || 
+    const myBattles = vattles.filter(v =>
+        v.creatorName === userProfile.name ||
+        v.invitedOpponent === userProfile.name ||
         v.studentName === userProfile.name
     );
 
     const renderView = () => {
         if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0D0B14] text-purple-500 font-orbitron animate-pulse">Initializing Vattles Uplink...</div>;
-        
-        if (!session) return <AuthView />;
 
-        switch(view) {
+        if (!session) return <AuthView onGuestLogin={handleGuestLogin} />;
+
+        switch (view) {
             case 'onboarding':
                 return <OnboardingView userProfile={userProfile} onComplete={handleCompleteOnboarding} />;
             case 'arena':
-                return <VattleArena 
-                            userProfile={userProfile} 
-                            userBattles={myBattles} 
-                            showcaseBattles={vattles} // Showing all fetched battles as showcase for now
-                            onEnterBattle={handleEnterBattle} 
-                            onSpectateBattle={handleSpectateBattle}
-                            onViewVattle={handleViewVattle} 
-                            onJoinVattle={handleJoinVattle} 
-                            onWaitlist={handleOpenWaitlist}
-                            onRequestBattle={() => setCreateVattleModalOpen(true)}
-                        />;
+                return <VattleArena
+                    userProfile={userProfile}
+                    userBattles={myBattles}
+                    showcaseBattles={vattles} // Showing all fetched battles as showcase for now
+                    onEnterBattle={handleEnterBattle}
+                    onSpectateBattle={handleSpectateBattle}
+                    onViewVattle={handleViewVattle}
+                    onJoinVattle={handleJoinVattle}
+                    onWaitlist={handleOpenWaitlist}
+                    onRequestBattle={() => setCreateVattleModalOpen(true)}
+                />;
             case 'battle':
-                return activeVattle ? <BattleRoom 
-                    vattle={activeVattle} 
-                    onExit={handleExitBattle} 
+                return activeVattle ? <BattleRoom
+                    vattle={activeVattle}
+                    onExit={handleExitBattle}
                     onSubmit={handleVattleSubmission}
                     userProfile={userProfile}
                     onSavePrompt={handleSavePrompt}
@@ -466,39 +482,39 @@ const App: React.FC = () => {
             case 'voting':
                 return activeVattle ? <VotingView vattle={activeVattle} onVote={handleVote} hasVoted={!!votedOn[activeVattle.id]} onBack={() => setView('arena')} userProfile={userProfile} onEndorse={handleEndorse} onCloneToLab={handleCloneToLab} /> : <div className="text-white">Error: No vattle selected for viewing.</div>;
             case 'profile':
-                return <ProfileView 
-                            userProfile={userProfile} 
-                            onBack={() => setView('arena')} 
-                            onEdit={() => setProfileModalOpen(true)} 
-                            onPinItem={handlePinItem} 
-                            onUnpinItem={handleUnpinItem}
-                            onUpdateVibeAnalysis={handleUpdateVibeAnalysis}
-                            onUpdateProfile={handleUpdateProfile}
-                        />
+                return <ProfileView
+                    userProfile={userProfile}
+                    onBack={() => setView('arena')}
+                    onEdit={() => setProfileModalOpen(true)}
+                    onPinItem={handlePinItem}
+                    onUnpinItem={handleUnpinItem}
+                    onUpdateVibeAnalysis={handleUpdateVibeAnalysis}
+                    onUpdateProfile={handleUpdateProfile}
+                />
             case 'rankings':
                 return <RankingsView onBack={() => setView('arena')} />
             case 'tournaments':
                 return <TournamentsView tournaments={tournaments} onBack={() => setView('arena')} onSelectTournament={handleSelectTournament} onRegister={handleRegisterTournament} registeredTournaments={registeredTournaments} />
             case 'tournament_detail':
-                return activeTournament ? <TournamentDetailView tournament={activeTournament} onBack={() => setView('tournaments')} onRegister={handleRegisterTournament} onCheckIn={() => {}} isRegistered={!!registeredTournaments[activeTournament.id]} isCheckedIn={false}/> : <div className="text-white">Error: No tournament selected.</div>;
+                return activeTournament ? <TournamentDetailView tournament={activeTournament} onBack={() => setView('tournaments')} onRegister={handleRegisterTournament} onCheckIn={() => { }} isRegistered={!!registeredTournaments[activeTournament.id]} isCheckedIn={false} /> : <div className="text-white">Error: No tournament selected.</div>;
             case 'vibelabs':
                 return <VibeLabsView onBack={() => setView('arena')} initialPrompt={labInitialPrompt} />;
             case 'api':
-                 return <ApiView onBack={() => setView('arena')} />;
+                return <ApiView onBack={() => setView('arena')} />;
             case 'streaming':
                 return <StreamingView onBack={() => setView('arena')} />;
             default:
-                return <VattleArena 
-                            userProfile={userProfile} 
-                            userBattles={myBattles} 
-                            showcaseBattles={vattles} 
-                            onEnterBattle={handleEnterBattle} 
-                            onSpectateBattle={handleSpectateBattle}
-                            onViewVattle={handleViewVattle} 
-                            onJoinVattle={handleJoinVattle} 
-                            onWaitlist={handleOpenWaitlist}
-                            onRequestBattle={() => setCreateVattleModalOpen(true)}
-                        />;
+                return <VattleArena
+                    userProfile={userProfile}
+                    userBattles={myBattles}
+                    showcaseBattles={vattles}
+                    onEnterBattle={handleEnterBattle}
+                    onSpectateBattle={handleSpectateBattle}
+                    onViewVattle={handleViewVattle}
+                    onJoinVattle={handleJoinVattle}
+                    onWaitlist={handleOpenWaitlist}
+                    onRequestBattle={() => setCreateVattleModalOpen(true)}
+                />;
         }
     }
 
@@ -507,8 +523,8 @@ const App: React.FC = () => {
     return (
         <div className="bg-[#0D0B14] min-h-screen">
             {session && view !== 'onboarding' && !isImmersiveView && (
-                <Header 
-                    userProfile={userProfile} 
+                <Header
+                    userProfile={userProfile}
                     onNavigate={(v) => handleNavigate(v as View)}
                     onOpenCreateVattle={() => setCreateVattleModalOpen(true)}
                     onLogout={handleLogout}
@@ -519,7 +535,7 @@ const App: React.FC = () => {
             <main className={session && view !== 'onboarding' && !isImmersiveView ? 'p-4 sm:p-6 lg:p-8' : 'h-screen flex flex-col'}>
                 {renderView()}
             </main>
-            <CreateVattleModal isOpen={isCreateVattleModalOpen} onClose={() => setCreateVattleModalOpen(false)} onCreate={handleCreateVattle} isCoach={userProfile.role === 'coach'}/>
+            <CreateVattleModal isOpen={isCreateVattleModalOpen} onClose={() => setCreateVattleModalOpen(false)} onCreate={handleCreateVattle} isCoach={userProfile.role === 'coach'} />
             <ProfileModal isOpen={isProfileModalOpen} onClose={() => setProfileModalOpen(false)} currentProfile={userProfile} onSave={handleSaveProfile} />
             <WaitlistModal isOpen={isWaitlistModalOpen} onClose={() => setWaitlistModalOpen(false)} featureName={waitlistFeature} description={waitlistDescription} />
         </div>
