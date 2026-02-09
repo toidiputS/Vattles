@@ -22,7 +22,7 @@ interface VattleArenaProps {
 const SpotlightVattleCard: React.FC<{ vattle: VattleConfig; onSpectate: () => void; }> = ({ vattle, onSpectate }) => {
     return (
         <div
-            className="relative flex-shrink-0 w-[420px] h-[260px] rounded-2xl overflow-hidden group border border-purple-500/30 bg-[#151221] shadow-xl shadow-black/50 transform transition-all duration-300 hover:scale-[1.03] hover:shadow-purple-600/20 hover:border-purple-400/60 cursor-pointer"
+            className="relative shrink-0 w-[420px] h-[260px] rounded-2xl overflow-hidden group border border-purple-500/30 bg-[#151221] shadow-xl shadow-black/50 transform transition-all duration-300 hover:scale-[1.03] hover:shadow-purple-600/20 hover:border-purple-400/60 cursor-pointer"
             onClick={onSpectate}
         >
             {/* Background Image with Zoom Effect */}
@@ -35,8 +35,8 @@ const SpotlightVattleCard: React.FC<{ vattle: VattleConfig; onSpectate: () => vo
             </div>
 
             {/* Gradient Overlays for Readability */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0D0B14] via-[#0D0B14]/40 to-transparent"></div>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="absolute inset-0 bg-linear-to-t from-vattles-bg via-vattles-bg/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-linear-to-r from-purple-900/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
             {/* Badges */}
             <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
@@ -210,12 +210,12 @@ const VattleCard: React.FC<{
                         )}
                     </div>
                 </div>
-                <div className={`flex-shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${currentStyle.badge}`}>
+                <div className={`shrink-0 text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-full border ${currentStyle.badge}`}>
                     {currentStyle.label}
                 </div>
             </div>
 
-            <div className="flex-grow"></div>
+            <div className="grow"></div>
 
             {/* Metadata Footer */}
             <div className="flex items-center justify-between text-sm text-gray-300 border-t border-gray-700/50 pt-4 mt-2">
@@ -289,7 +289,7 @@ const VattleArena: React.FC<VattleArenaProps> = ({ userProfile, userBattles, sho
                 <div className="relative z-10 flex items-center gap-6">
                     <div className="relative">
                         <img src={userProfile.avatarUrl} className="w-16 h-16 rounded-full border-2 border-purple-500/50 shadow-lg shadow-purple-500/10" alt="Avatar" />
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-[#0D0B14] rounded-full" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 border-4 border-vattles-bg rounded-full" />
                     </div>
                     <div>
                         <div className="flex items-center gap-3">
