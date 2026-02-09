@@ -1,6 +1,7 @@
 
 export type UserStatus = 'pro' | 'featured';
 export type UserRole = 'player' | 'coach';
+export type RankTier = 'iron' | 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond' | 'vibe-master' | 'medal-of-honor';
 
 export interface Achievement {
   id: string;
@@ -17,17 +18,17 @@ export interface Endorsement {
 export type ProfileTheme = 'default' | 'synthwave' | 'matrix' | 'brutalist-dark';
 
 export interface Rivalry {
-    opponentId: string;
-    opponentName: string;
-    opponentAvatarUrl: string;
-    wins: number;
-    losses: number;
+  opponentId: string;
+  opponentName: string;
+  opponentAvatarUrl: string;
+  wins: number;
+  losses: number;
 }
 
 export interface PromptLibraryItem {
-    id: string;
-    type: 'visuals' | 'audio' | 'text';
-    prompt: string;
+  id: string;
+  type: 'visuals' | 'audio' | 'text';
+  prompt: string;
 }
 
 export interface UserProfile {
@@ -42,7 +43,11 @@ export interface UserProfile {
     vattlesPlayed: number;
     wins: number;
     losses: number;
+    mmr: number;
   };
+  rankTier: RankTier;
+  isFounder?: boolean;
+  isWarStarter?: boolean;
   portfolio: PortfolioItem[];
   showcase: ShowcaseItem[];
   vibeAnalysis?: string;
@@ -53,8 +58,8 @@ export interface UserProfile {
   rivalries?: Rivalry[];
   promptLibrary?: PromptLibraryItem[];
   currentVibeTrack?: {
-      title: string;
-      isPlaying: boolean;
+    title: string;
+    isPlaying: boolean;
   };
 }
 
@@ -96,9 +101,9 @@ export interface VattleConfig {
 }
 
 export interface FinalCode {
-    html: string;
-    css: string;
-    js: string;
+  html: string;
+  css: string;
+  js: string;
 }
 
 export interface Commit {
@@ -145,55 +150,58 @@ export interface ChatMessage {
 }
 
 export interface CoachingComment {
-    id: string;
-    coachName: string;
-    coachAvatarUrl: string;
-    timestamp: string;
-    comment: string;
+  id: string;
+  coachName: string;
+  coachAvatarUrl: string;
+  timestamp: string;
+  comment: string;
 }
 
 export interface LeaderboardUser {
-    id: string;
-    rank: number;
-    username: string;
-    avatarUrl: string;
-    status?: UserStatus;
-    mmr: number;
-    wins: number;
-    losses: number;
-    mainVibe: 'Cyberpunk' | 'Sci-Fi' | 'Minimalist' | 'Retro' | 'Nature';
+  id: string;
+  rank: number;
+  username: string;
+  avatarUrl: string;
+  status?: UserStatus;
+  mmr: number;
+  wins: number;
+  losses: number;
+  rankTier: RankTier;
+  isFounder?: boolean;
+  isWarStarter?: boolean;
+  mainVibe: 'Cyberpunk' | 'Sci-Fi' | 'Minimalist' | 'Retro' | 'Nature';
 }
 
 export interface Tournament {
-    id: string;
-    title: string;
-    theme: string;
-    type: 'official' | 'sponsored' | 'community';
-    status: 'upcoming' | 'live' | 'completed';
-    prizePool: string;
-    participants: TournamentParticipant[];
-    maxParticipants: number;
-    rounds: TournamentRound[];
+  id: string;
+  title: string;
+  theme: string;
+  type: 'official' | 'sponsored' | 'community';
+  status: 'upcoming' | 'live' | 'completed';
+  prizePool: string;
+  participants: TournamentParticipant[];
+  maxParticipants: number;
+  rounds: TournamentRound[];
 }
 
 export interface TournamentRound {
-    id: string;
-    name: string;
-    matches: TournamentMatch[];
+  id: string;
+  name: string;
+  matches: TournamentMatch[];
 }
 
 export interface TournamentMatch {
-    id: string;
-    participants: (TournamentParticipant | null)[];
-    winnerId?: string;
-    score?: [number, number];
+  id: string;
+  participants: (TournamentParticipant | null)[];
+  winnerId?: string;
+  score?: [number, number];
 }
 
 export interface TournamentParticipant {
-    id: string;
-    name: string;
-    avatarUrl: string;
-    seed: number;
+  id: string;
+  name: string;
+  avatarUrl: string;
+  seed: number;
 }
 
 // --- DATABASE INTERFACES ---

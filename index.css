@@ -123,3 +123,40 @@ body {
 .animate-flicker {
   animation: flicker 3s infinite;
 }
+
+/* Architect Animations */
+@keyframes vibe-dust {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(var(--tw-dust-x, 20px), var(--tw-dust-y, -40px)) scale(0);
+    opacity: 0;
+  }
+}
+
+@keyframes prestige-glow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(251, 146, 60, 0.4));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px rgba(251, 146, 60, 0.7));
+  }
+}
+
+.animate-vibe-dust {
+  animation: vibe-dust 2s ease-out infinite;
+}
+
+.animate-prestige-glow {
+  animation: prestige-glow 3s ease-in-out infinite;
+}

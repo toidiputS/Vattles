@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, VattleConfig, Ratings, Tournament, PortfolioItem, Achievement, Endorsement, Rivalry, PromptLibraryItem, ShowcaseItem } from './types';
+import { UserProfile, VattleConfig, Ratings, Tournament, PortfolioItem, Achievement, Endorsement, Rivalry, PromptLibraryItem, ShowcaseItem, RankTier } from './types';
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
@@ -28,6 +28,8 @@ import CreateVattleModal from './components/CreateVattleModal';
 import ProfileModal from './components/ProfileModal';
 import WaitlistModal from './components/WaitlistModal';
 
+import { getRankTier } from './lib/rankUtils';
+
 // --- MOCK DATA FALLBACKS (Used if DB is empty or for UI scaffolding) ---
 const mockPortfolio: PortfolioItem[] = [
     { vattleId: 'vattle-3', title: 'Galactic Glider', theme: 'Vaporwave Space', date: '2023-10-22', opponentName: 'CodeNinja', result: 'win' },
@@ -43,7 +45,10 @@ const initialUserProfile: UserProfile = {
     role: 'player',
     status: 'pro',
     hasCompletedOnboarding: false,
-    stats: { vattlesPlayed: 0, wins: 0, losses: 0 },
+    stats: { vattlesPlayed: 0, wins: 0, losses: 0, mmr: 1200 },
+    rankTier: 'silver',
+    isFounder: true,
+    isWarStarter: true,
     portfolio: mockPortfolio,
     showcase: [],
     achievements: mockAchievements,
@@ -173,6 +178,17 @@ const App: React.FC = () => {
                     id: data.id,
                     name: data.username || 'Vattler',
                     avatarUrl: data.avatar_url || initialUserProfile.avatarUrl,
+                    role: data.role || 'player',
+                    stats: data.stats || initialUserProfile.stats,
+                    rankTier: (data.rank_tier as RankTier) || initialUserProfile.rankTier,
+                    isFounder: data.is_founder !== undefined ? data.is_founder : initialUserProfile.isFounder,
+                    isWarStarter: data.is_war_starter !== undefined ? data.is_war_starter : initialUserProfile.isWarStarter,
+                    vibeAnalysis: data.vibe_analysis,
+                    achievements: data.achievements || [],
+                    portfolio: data.portfolio || [],
+                    showcase: data.showcase || [],
+                    promptLibrary: data.prompt_library || [],
+                    profileTheme: data.profile_theme || 'default',
                     hasCompletedOnboarding: !!data.username,
                 });
                 if (!data.username) setView('onboarding');
@@ -351,6 +367,11 @@ const App: React.FC = () => {
     };
 
     const handleJoinVattle = async (vattle: VattleConfig) => {
+        if (vattle.status !== 'pending') {
+            alert('This Vattle is no longer accepting challengers.');
+            return;
+        }
+
         // DB Update
         const { error } = await supabase.from('battles').update({
             opponent_id: session?.user.id,
@@ -370,18 +391,14 @@ const App: React.FC = () => {
         if (!activeVattle || !session) return;
 
         const html = result.files.find((f: any) => f.name === 'index.html')?.content || '';
-        const css = result.files.find((f: any) => f.name === 'style.css')?.content || '';
-        const js = result.files.find((f: any) => f.name === 'script.js')?.content || '';
 
-        // 1. Save submission to 'submissions' table
+        // 1. Save submission to 'submissions' table (only columns that exist)
         const { error } = await supabase.from('submissions').insert({
             battle_id: activeVattle.id,
             user_id: session.user.id,
-            code_html: html,
-            code_css: css,
-            code_js: js,
-            submission_url: result.submissionUrl,
-            description: result.description,
+            code_html: html, // Full HTML includes inline CSS/JS
+            submission_url: result.submissionUrl || '',
+            description: result.description || '',
             status: 'submitted'
         });
 
@@ -391,13 +408,38 @@ const App: React.FC = () => {
             return;
         }
 
-        // 2. Update battle status to 'voting'
-        await supabase.from('battles').update({ status: 'voting' }).eq('id', activeVattle.id);
+        // 2. Check if this is a 1v1 AI battle (immediate voting) or PvP (wait for both)
+        const isAiBattle = activeVattle.opponent === 'ai';
 
-        const updatedVattle: VattleConfig = { ...activeVattle, status: 'voting' };
-        setVattles(prev => prev.map(b => b.id === activeVattle.id ? updatedVattle : b));
-        setActiveVattle(updatedVattle);
-        setView('voting');
+        if (isAiBattle) {
+            // AI battles transition immediately to voting after human submits
+            await supabase.from('battles').update({ status: 'voting' }).eq('id', activeVattle.id);
+            const updatedVattle: VattleConfig = { ...activeVattle, status: 'voting' };
+            setVattles(prev => prev.map(b => b.id === activeVattle.id ? updatedVattle : b));
+            setActiveVattle(updatedVattle);
+            setView('voting');
+        } else {
+            // PvP battles: Check if both players have submitted
+            const { data: submissions } = await supabase
+                .from('submissions')
+                .select('user_id')
+                .eq('battle_id', activeVattle.id);
+
+            const submissionCount = submissions?.length || 0;
+
+            if (submissionCount >= 2) {
+                // Both players submitted, transition to voting
+                await supabase.from('battles').update({ status: 'voting' }).eq('id', activeVattle.id);
+                const updatedVattle: VattleConfig = { ...activeVattle, status: 'voting' };
+                setVattles(prev => prev.map(b => b.id === activeVattle.id ? updatedVattle : b));
+                setActiveVattle(updatedVattle);
+                setView('voting');
+            } else {
+                // Still waiting for opponent, return to arena with a message
+                alert('Your vibe is locked in! Waiting for your opponent to submit...');
+                setView('arena');
+            }
+        }
     };
 
     const handleVote = async (vattleId: string, appIdentifier: 'A' | 'B', ratings: Ratings) => {
@@ -462,7 +504,6 @@ const App: React.FC = () => {
             id: session.user.id,
             username: newUsername,
             avatar_url: newAvatarUrl,
-            updated_at: new Date().toISOString(),
         });
 
         if (error) {
@@ -524,7 +565,7 @@ const App: React.FC = () => {
     );
 
     const renderView = () => {
-        if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-[#0D0B14] text-purple-500 font-orbitron animate-pulse">Initializing Vattles Uplink...</div>;
+        if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-vattles-bg text-purple-500 font-orbitron animate-pulse">Initializing Vattles Uplink...</div>;
 
         if (!session) return <AuthView onGuestLogin={handleGuestLogin} />;
 
@@ -542,6 +583,7 @@ const App: React.FC = () => {
                     onJoinVattle={handleJoinVattle}
                     onWaitlist={handleOpenWaitlist}
                     onRequestBattle={() => setCreateVattleModalOpen(true)}
+                    onEnterVibeLab={() => setView('vibelabs')}
                 />;
             case 'battle':
                 return activeVattle ? <BattleRoom
@@ -598,6 +640,7 @@ const App: React.FC = () => {
                     onJoinVattle={handleJoinVattle}
                     onWaitlist={handleOpenWaitlist}
                     onRequestBattle={() => setCreateVattleModalOpen(true)}
+                    onEnterVibeLab={() => setView('vibelabs')}
                 />;
         }
     }
@@ -605,7 +648,7 @@ const App: React.FC = () => {
     const isImmersiveView = view === 'battle' || view === 'spectate' || view === 'overlay_stats' || view === 'overlay_voting';
 
     return (
-        <div className="bg-[#0D0B14] min-h-screen">
+        <div className="bg-vattles-bg min-h-screen">
             {session && view !== 'onboarding' && !isImmersiveView && (
                 <Header
                     userProfile={userProfile}

@@ -10,12 +10,20 @@ DROP TABLE IF EXISTS public.profiles CASCADE;
 CREATE TABLE public.profiles (
     id UUID PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
     created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
     username TEXT UNIQUE,
     avatar_url TEXT,
     role TEXT DEFAULT 'player',
-    stats JSONB DEFAULT '{"vattlesPlayed": 0, "wins": 0, "losses": 0}'::jsonb,
+    stats JSONB DEFAULT '{"vattlesPlayed": 0, "wins": 0, "losses": 0, "mmr": 1200}'::jsonb,
+    rank_tier TEXT DEFAULT 'silver',
+    is_founder BOOLEAN DEFAULT true,
+    is_war_starter BOOLEAN DEFAULT false,
     vibe_analysis TEXT,
-    achievements JSONB DEFAULT '[]'::jsonb
+    achievements JSONB DEFAULT '[]'::jsonb,
+    portfolio JSONB DEFAULT '[]'::jsonb,
+    showcase JSONB DEFAULT '[]'::jsonb,
+    prompt_library JSONB DEFAULT '[]'::jsonb,
+    profile_theme TEXT DEFAULT 'default'
 );
 
 -- 3. CREATE BATTLES
