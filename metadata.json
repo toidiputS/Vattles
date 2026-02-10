@@ -1,5 +1,5 @@
 {
-  "name": "Vattles",
-  "description": "A web application showcasing a voting arena for AI-assisted coding competitions. Users can view and vote on submissions based on their vibe, aesthetics, and creativity, all within a futuristic, neon-lit interface.",
+  "name": "Books OS v1.1",
+  "description": "A 3D book library interface using Zod schemas, Zustand stores, and React Three Fiber for rendering. Based on the 'Books OS — v1.1 Core Models + 3D Foundation' specification.",
   "requestFramePermissions": []
 }

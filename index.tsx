@@ -1,19 +1,31 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { registerSW } from 'virtual:pwa-register';
-// Register Service Worker for PWA with aggressive update strategy
-registerSW({
-  immediate: true,
-  onNeedRefresh() {
-    console.log('New content available, refreshing...');
-    window.location.reload();
-  },
-  onOfflineReady() {
-    console.log('App ready to work offline');
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      group: any;
+      mesh: any;
+      meshStandardMaterial: any;
+      meshBasicMaterial: any;
+      boxGeometry: any;
+      planeGeometry: any;
+      cylinderGeometry: any;
+      coneGeometry: any;
+      sphereGeometry: any;
+      circleGeometry: any;
+      ringGeometry: any;
+      torusGeometry: any;
+      ambientLight: any;
+      pointLight: any;
+      hemisphereLight: any;
+      fog: any;
+      color: any;
+      gridHelper: any;
+    }
   }
-});
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
